@@ -1,3 +1,4 @@
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "regex.h"
@@ -36,4 +37,6 @@ void re_match(const char *regex, const char *string, regmatch_t *pmatch) {
     pmatch[0].rm_so = -1;
     pmatch[0].rm_eo = -1;
   }
+
+  regfree(&reg);
 }
