@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "parser.h"
 #include "tables.h"
-#include "dynamic-string-array.h"
-#include "utils.h"
 
 int main(int argc, char *argv[]) {
     if(argc != 2) {
@@ -11,26 +10,44 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    // Initialization
-    struct HashMap *symbolsTable = getSymbolsTable();
-    struct DynamicStringArray *source = DynamicStringArray_new();
-    struct DynamicStringArray *cleanSource = DynamicStringArray_new();
-    struct DynamicStringArray *output = DynamicStringArray_new();
-    getSourceCode(argv[1], source, cleanSource);
+    // source file
+    FILE *source_file = fopen(argv[1], "r");
+    if(source_file == NULL) {
+        perror("Error opening source file");
+        exit(1);
+    }
 
-    // get symbols
-    firstScan(cleanSource, symbolsTable);
+    // output file
+    char out[128];
+    char *c = strchr(argv[1], '.');
+    if (c) {
+        *c = '\0';
+    }
+    snprintf(out, 128, "%s.hack", argv[1]);
+
+    FILE *output_file = fopen(out, "w");
+    if(output_file == NULL) {
+        perror("Error opening output file");
+        fclose(source_file);
+        exit(1);
+    }
+
+    // Initialization
+    struct HashMap *symbols_table = get_symbols_table();
+
+    // get labels
+    first_scan(source_file, symbols_table);
+
     // work out source code
-    if(secondScan(source, cleanSource, symbolsTable, output) == 0) {
-        //success
-        saveHackCode(argv[1], output);
+    if(second_scan(source_file, symbols_table, output_file) != 0) {
+        // error, erase output file
+        remove(out);
     }
 
     // shutdown
-    symbolsTable->del(symbolsTable);
-    source->del(source);
-    cleanSource->del(cleanSource);
-    output->del(output);
+    symbols_table->del(symbols_table);
+    fclose(source_file);
+    fclose(output_file);
 
     return 0;
 }

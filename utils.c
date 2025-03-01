@@ -3,18 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "utils.h"
-#include "dynamic-string-array.h"
 
-void rstrip(char *s) {
-  int lastIndex = strlen(s) - 1;
+void strip(char *s) {
+  int last_index = strlen(s) - 1;
   // set all spaces with 0 from end to start
-  while (isblank(s[lastIndex]) || isspace(s[lastIndex]) ||
-         s[lastIndex] == '\n') {
-    s[lastIndex--] = '\0';
+  while (isblank(s[last_index]) || isspace(s[last_index]) ||
+         s[last_index] == '\n') {
+    s[last_index--] = '\0';
   }
-}
 
-void lstrip(char *s) {
   // find first printable char
   int i = 0;
   while (isblank(s[i]) || isspace(s[i]) || s[i] == '\n') {
@@ -33,12 +30,7 @@ void lstrip(char *s) {
   strcpy(s, tmp);
 }
 
-void strip(char *s) {
-  rstrip(s);
-  lstrip(s);
-}
-
-int isEmptyString(char *s) { return s[0] == '\0'; }
+int is_empty_string(char *s) { return s[0] == '\0'; }
 
 void reverse(char *s) {
   int i, j, c, len;
@@ -50,7 +42,7 @@ void reverse(char *s) {
   }
 }
 
-void decimalToBinaryString(int d, char *s, int size, int pad) {
+void decimal_to_binary(int d, char *s, int size, int pad) {
   double power, base, tmp;
   power = tmp = 0;
   base = 2;
@@ -86,7 +78,7 @@ void decimalToBinaryString(int d, char *s, int size, int pad) {
   reverse(s);
 }
 
-int isNumericString(char *s) {
+int is_numeric_string(char *s) {
   int len = strlen(s);
   for(int i = 0; i < len; i++) {
     // not a digit
@@ -98,7 +90,7 @@ int isNumericString(char *s) {
 }
 
 
-void removeSpaces(char *s) {
+void remove_spaces(char *s) {
   char tmp[256];
   int j = 0;
 
@@ -113,7 +105,7 @@ void removeSpaces(char *s) {
   strcpy(s, tmp);
 }
 
-void clearLine(char *s) {
+void clear_line(char *s) {
   // remove comment
   char *c = strchr(s, '/');
   if(c != NULL) {
@@ -124,58 +116,14 @@ void clearLine(char *s) {
   strip(s);
 
   // remove spaces withing instruction
-  removeSpaces(s);
+  remove_spaces(s);
 }
 
-void getSourceCode(
-  char *filePath, 
-  struct DynamicStringArray *source, 
-  struct DynamicStringArray *cleanSource
-) {
-    FILE *sourceFile = fopen(filePath, "r");
-    if(sourceFile == NULL) {
-        perror("Error opening source file");
-    }
-
-    int buffSize = 256;
-    char line[buffSize];
-    while(fgets(line, buffSize, sourceFile) != NULL) {
-        source->put(source, line);
-
-        clearLine(line);
-
-        // reject empty lines
-        if(isEmptyString(line))
-            continue;
-
-        // pure instruction
-        cleanSource->put(cleanSource, line);
-    }
-
-    fclose(sourceFile);
-}
-
-void saveHackCode(char *sourceFile, struct DynamicStringArray *output) {
-  char out[128];
-    char *c = strchr(sourceFile, '.');
-    if (c) {
-        *c = '\0';
-    }
-    snprintf(out, 128, "%s.hack", sourceFile);
-
-    FILE *outFile = fopen(out, "w");
-    if(outFile == NULL) {
-        perror("Error opening output file");
-    }
-
-    // write to file
-    for(int i = 0; i < output->count; i++) {
-        #ifdef DEBUG
-        printf("[utils.c] %d: '%s'\n", i, output->stringArray[i]);
-        #endif // DEBUG
-        char line[18]; // 16 bits + \n + \0
-        snprintf(line, 18, "%s\n", output->stringArray[i]);
-        fputs(line, outFile);
-    }
-    fclose(outFile);
+void write_output(const char *line, FILE *output_file) {
+  char wider_line[18];
+  snprintf(wider_line, 18, "%s\n", line);
+  #ifdef DEBUG
+  printf("[utils.c] write_output: '%s'\n", wider_line);
+  #endif
+  fputs(wider_line, output_file);
 }

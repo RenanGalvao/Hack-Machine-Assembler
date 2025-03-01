@@ -6,118 +6,148 @@
 #include "utils.h"
 #include "tables.h"
 
-static int nextAddress = 16;
-
 // first scan - get labels
-void firstScan(struct DynamicStringArray *cleanSource, struct HashMap *symbolsTable) {
-    char reIsLabel[] = "\\(.+\\)";
+void first_scan(FILE *source_file, struct HashMap *symbols_table) {
+    char re_is_label[] = "\\(.+\\)";
     regmatch_t pmatch[1];
 
-    // compesate for labels
-    int labelCount = 0;
+    int line_size = 256;
+    char line[line_size];
+    int line_number = 0;
+    int label_count = 0; // compesate for labels
 
-    for(int i = 0; i < cleanSource->count; i++) {
-        re_match(reIsLabel, cleanSource->stringArray[i], pmatch);
+    while(fgets(line, line_size, source_file) != NULL) {
+        // prepare line
+        clear_line(line);
+
+        // ignore empty lines
+        if(is_empty_string(line)) {
+            continue;
+        }
+
+        // process
+        re_match(re_is_label, line, pmatch);
 
         int off = pmatch[0].rm_so;
         int len = pmatch[0].rm_eo - pmatch[0].rm_so;
 
         #ifdef DEBUG
-        printf("[parser.c] original string: '%s'; off: %d; length: %d; cleanSource line:%d;\n", cleanSource->stringArray[i], off, len, i);
+        printf("[parser.c] original string: '%s'; off: %d; length: %d; line:%d;\n", line, off, len, line_number);
         #endif // DEBUG
 
         if(off != -1) {
-            char tmp[128];
+            char tmp[16];
             char binary[17];
 
             // strip '(' and ')'
-            snprintf(tmp, 128, "%.*s", len - 2, cleanSource->stringArray[i] + 1);
+            snprintf(tmp, 16, "%.*s", len - 2, line + 1);
 
-            decimalToBinaryString(i - labelCount, binary, 17, 1);
-            symbolsTable->put(symbolsTable, tmp, binary);
-            labelCount++;
+            decimal_to_binary(line_number - label_count, binary, 17, 1);
+            symbols_table->put(symbols_table, tmp, binary);
+            label_count++;
 
             #ifdef DEBUG
             printf("[parser.c] label: '%s'; address: '%s'\n", tmp, binary);
             #endif // DEBUG
         }
+
+        line_number++;
     }
+
+    rewind(source_file);
 }
 
 // second scan - translate instructions and find errors
 // ignore label instructions (xxx), just A and C get translated
-int secondScan(struct DynamicStringArray *source, struct DynamicStringArray *cleanSource, struct HashMap *symbolsTable, struct DynamicStringArray *output) {
-    char reIsAinstruction[] = "@";
-    char reIsCinstruction[] = "[;=]";
+int second_scan(FILE *source_file, struct HashMap *symbols_table, FILE *output_file) {
+    char re_is_label[] = "\\(.+\\)";
+    char re_is_a_instruction[] = "@";
+    char re_is_c_instruction[] = "[;=]";
     regmatch_t pmatch[1];
 
-    struct HashMap *compTable = getCompTable();
-    struct HashMap *destTable = getDestTable();
-    struct HashMap *jumpTable = getJumpTable();
+    struct HashMap *comp_table = get_comp_table();
+    struct HashMap *dest_table = get_dest_table();
+    struct HashMap *jump_table = get_jump_table();
 
-    for(int i = 0; i < cleanSource->count; i++) {
-        char tmp[128];
+    int line_size = 256;
+    char line[line_size];
+    int line_number = 0;
+    int next_address = 16;
+
+    while(fgets(line, line_size, source_file) != NULL) {
         char binary[17];
+        char *table_value = NULL;
 
-        char original[128];
-        strcpy(original, cleanSource->stringArray[i]);
+        // prepare line
+        clear_line(line);
 
-        char *tableValue = NULL;
+        // ignore empty lines
+        if(is_empty_string(line)) {
+            line_number++;
+            continue;
+        }
 
         // A Instruction
-        re_match(reIsAinstruction, cleanSource->stringArray[i], pmatch);
+        re_match(re_is_a_instruction, line, pmatch);
         if(pmatch[0].rm_so != -1) {
             // strip @
-            snprintf(tmp, 128, "%s", cleanSource->stringArray[i] + 1);
+            char tmp[16];
+            snprintf(tmp, 16, "%s", line + 1);
 
             if(strlen(tmp) == 0) {
-                badInstruction(source, original);
-                cleanUp(compTable, destTable, jumpTable);
+                bad_instruction(line, line_number);
+                clean_up(comp_table, dest_table, jump_table);
 
                 return -1;
             }
 
-            tableValue = symbolsTable->get(symbolsTable, tmp);
-            if(!tableValue) {
-                if(isNumericString(tmp)) {
-                    decimalToBinaryString(atoi(tmp), binary, 17, 1);
-                } else {
-                    decimalToBinaryString(nextAddress++, binary, 17, 1);
-                    // save new symbol
-                    symbolsTable->put(symbolsTable, tmp, binary);
+            table_value = symbols_table->get(symbols_table, tmp);
+            if(!table_value) {
+                // used as data
+                if(is_numeric_string(tmp)) {
+                    decimal_to_binary(atoi(tmp), binary, 17, 1);
+                }
+                // new var
+                else {
+                    decimal_to_binary(next_address++, binary, 17, 1);
+                    symbols_table->put(symbols_table, tmp, binary);
                 }
             } else {
-                strcpy(binary, tableValue);
+                strcpy(binary, table_value);
             }
 
             #ifdef DEBUG
-            printf("[parser.c] instruction #%d; original string: '%s'; binary value: '%s';\n", i, original, binary);
+            printf("[parser.c] instruction #%d; original string: '%s'; binary value: '%s';\n", line_number, line, binary);
             #endif // DEBUG
 
-            output->put(output, binary);
+            write_output(binary, output_file);
 
             // next instruction
+            line_number++;
             continue;
         }
 
         // C Instruction
-        re_match(reIsCinstruction, cleanSource->stringArray[i], pmatch);
+        char original[16];
+        strcpy(original, line);
+
+        re_match(re_is_c_instruction, line, pmatch);
         if(pmatch[0].rm_so != -1) {
             char dest[4];
             char comp[8]; // 7 with 'a' bit
             char jump[4];
-            char out[17];
-            decimalToBinaryString(0, dest, 4, 1);
-            decimalToBinaryString(0, comp, 8, 1);
-            decimalToBinaryString(0, jump, 4, 1);
+
+            decimal_to_binary(0, dest, 4, 1);
+            decimal_to_binary(0, comp, 8, 1);
+            decimal_to_binary(0, jump, 4, 1);
 
             // jump
-            if(strchr(cleanSource->stringArray[i], ';')) {
-                char *token = strtok(cleanSource->stringArray[i], ";");
+            if(strchr(line, ';')) {
+                char *token = strtok(line, ";");
 
                 if(token == NULL) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
@@ -125,38 +155,41 @@ int secondScan(struct DynamicStringArray *source, struct DynamicStringArray *cle
                 // memory computation a = 1
                 comp[0] = strchr(token, 'M') ? '1' : '0'; 
 
-                tableValue = compTable->get(compTable, token);
-                if(!tableValue) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+                // first part of instruction - computation
+                table_value = comp_table->get(comp_table, token);
+                if(!table_value) {
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
-                strcpy(comp+1, tableValue);
+                strcpy(comp+1, table_value);
 
+                // second part - jump test
                 token = strtok(NULL, ";");
-                tableValue = jumpTable->get(jumpTable, token);
-                if(!tableValue) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+                table_value = jump_table->get(jump_table, token);
+                if(!table_value) {
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
-                strcpy(jump, tableValue);
+                strcpy(jump, table_value);
 
                 #ifdef DEBUG
-                printf("[parser.c] instruction #%d; original string: '%s'; comp: %s; dest: %s; jump:%s;\n", i, original, comp, dest, jump);
+                printf("[parser.c] instruction #%d; original string: '%s'; comp: %s; dest: %s; jump:%s;\n", line_number, original, comp, dest, jump);
                 #endif // DEBUG
 
-                snprintf(out, 17, "111%s%s%s", comp, dest, jump);
-                output->put(output, out);
+                snprintf(binary, 17, "111%s%s%s", comp, dest, jump);
+                write_output(binary, output_file);
             }
+
             // assignment
             else {
-                char *token = strtok(cleanSource->stringArray[i], "=");
+                char *token = strtok(line, "=");
                 if(token == NULL) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
@@ -166,54 +199,75 @@ int secondScan(struct DynamicStringArray *source, struct DynamicStringArray *cle
                 // dest[2] = strchr(token, 'M') ? '1' : '0'; 
                 // dest[1] = strchr(token, 'D') ? '1' : '0'; 
                 // dest[0] = strchr(token, 'A') ? '1' : '0'; 
-                tableValue = destTable->get(destTable, token);
-                if(!tableValue) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+
+                // first part of instruction - destination
+                table_value = dest_table->get(dest_table, token);
+                if(!table_value) {
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
-                strcpy(dest, tableValue);
+                strcpy(dest, table_value);
 
+                // second part - computation
                 token = strtok(NULL, "=");
-                 // memory computation a = 1
-                comp[0] = strchr(token, 'M') ? '1' : '0';
-                tableValue = compTable->get(compTable, token);
-                if(!tableValue) {
-                    badInstruction(source, original);
-                    cleanUp(compTable, destTable, jumpTable);
+                if(token == NULL) {
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
 
                     return -1;
                 }
-                strcpy(comp+1,  tableValue);
+                // memory computation a = 1
+                comp[0] = strchr(token, 'M') ? '1' : '0';
+                table_value = comp_table->get(comp_table, token);
+                if(!table_value) {
+                    bad_instruction(original, line_number);
+                    clean_up(comp_table, dest_table, jump_table);
+
+                    return -1;
+                }
+                strcpy(comp+1,  table_value);
 
                 #ifdef DEBUG
-                printf("[parser.c] instruction #%d; original string: '%s'; comp: %s; dest: %s; jump:%s;\n", i, original, comp, dest, jump);
+                printf("[parser.c] instruction #%d; original string: '%s'; comp: %s; dest: %s; jump:%s;\n", line_number, original, comp, dest, jump);
                 #endif // DEBUG
 
-                snprintf(out, 17, "111%s%s%s", comp, dest, jump);
-                output->put(output, out);
+                snprintf(binary, 17, "111%s%s%s", comp, dest, jump);
+                write_output(binary, output_file);
             }
 
             // next instruction
+            line_number++;
             continue;
         }
+
+        // Label
+        re_match(re_is_label, line, pmatch);
+        if(pmatch[0].rm_so != -1) {
+
+            // ignore
+            line_number++;
+            continue;
+        }
+
+        // invalid instruction
+        bad_instruction(line, line_number);
+        clean_up(comp_table, dest_table, jump_table);
+
+        return -1;
     }
 
-    cleanUp(compTable, destTable, jumpTable);
-
+    clean_up(comp_table, dest_table, jump_table);
     return 0;
 }
 
-void badInstruction(struct DynamicStringArray *source, const char *s) {
-    int line = source->find(source, s, 1);
-    strip(source->stringArray[line]);
-    fprintf(stderr, "Bad instruction at line %d: '%s'\n", line+1, source->stringArray[line]);
+void bad_instruction(const char *line, int line_number) {
+    fprintf(stderr, "Bad instruction at line %d: '%s'\n", line_number+1, line);
 }
 
-void cleanUp(struct HashMap *compTable, struct HashMap *destTable, struct HashMap *jumpTable) {
-    compTable->del(compTable);
-    destTable->del(destTable);
-    jumpTable->del(jumpTable);
-
+void clean_up(struct HashMap *comp_table, struct HashMap *dest_table, struct HashMap *jump_table) {
+    comp_table->del(comp_table);
+    dest_table->del(dest_table);
+    jump_table->del(jump_table);
 }

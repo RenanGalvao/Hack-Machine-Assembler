@@ -2,96 +2,96 @@
 #include "tables.h"
 #include "utils.h"
 
-struct HashMap *getSymbolsTable(void) {
-  struct HashMap *symbolsTable = HashMap_new();
+struct HashMap *get_symbols_table(void) {
+  struct HashMap *symbols_table = HashMap_new();
   for (int i = 0; i < 16; i++) {
     char symbol[4];
     char value[17];
     snprintf(symbol, 4, "R%d", i);
-    decimalToBinaryString(i, value, 17, 1);
-    symbolsTable->put(symbolsTable, symbol, value);
+    decimal_to_binary(i, value, 17, 1);
+    symbols_table->put(symbols_table, symbol, value);
   }
-  symbolsTable->put(symbolsTable, "SCREEN", "0100000000000000");
-  symbolsTable->put(symbolsTable, "KBD", "0110000000000000");
-  symbolsTable->put(symbolsTable, "SP", "0000000000000000");
-  symbolsTable->put(symbolsTable, "LCL", "0000000000000001");
-  symbolsTable->put(symbolsTable, "ARG", "0000000000000010");
-  symbolsTable->put(symbolsTable, "THIS", "0000000000000011");
-  symbolsTable->put(symbolsTable, "THAT", "0000000000000100");
+  symbols_table->put(symbols_table, "SCREEN", "0100000000000000");
+  symbols_table->put(symbols_table, "KBD", "0110000000000000");
+  symbols_table->put(symbols_table, "SP", "0000000000000000");
+  symbols_table->put(symbols_table, "LCL", "0000000000000001");
+  symbols_table->put(symbols_table, "ARG", "0000000000000010");
+  symbols_table->put(symbols_table, "THIS", "0000000000000011");
+  symbols_table->put(symbols_table, "THAT", "0000000000000100");
 
-  return symbolsTable;
+  return symbols_table;
 }
 
-struct HashMap *getCompTable(void) {
-  struct HashMap *compTable = HashMap_new();
+struct HashMap *get_comp_table(void) {
+  struct HashMap *comp_table = HashMap_new();
 
-  compTable->put(compTable, "0", "101010");
-  compTable->put(compTable, "1", "111111");
-  compTable->put(compTable, "-1", "111010");
-  compTable->put(compTable, "D", "001100");
-  compTable->put(compTable, "A", "110000");
-  compTable->put(compTable, "M", "110000");
-  compTable->put(compTable, "!D", "001101");
-  compTable->put(compTable, "!A", "110001");
-  compTable->put(compTable, "!M", "110001");
-  compTable->put(compTable, "-D", "001111");
-  compTable->put(compTable, "-A", "110011");
-  compTable->put(compTable, "-M", "110011");
-  compTable->put(compTable, "D+1", "011111");
-  compTable->put(compTable, "A+1", "110111");
-  compTable->put(compTable, "M+1", "110111");
-  compTable->put(compTable, "D-1", "001110");
-  compTable->put(compTable, "A-1", "110010");
-  compTable->put(compTable, "M-1", "110010");
-  compTable->put(compTable, "D+A", "000010");
-  compTable->put(compTable, "D+M", "000010");
-  compTable->put(compTable, "D-A", "010011");
-  compTable->put(compTable, "D-M", "010011");
-  compTable->put(compTable, "A-D", "000111");
-  compTable->put(compTable, "M-D", "000111");
-  compTable->put(compTable, "D&A", "000000");
-  compTable->put(compTable, "D&M", "000000");
-  compTable->put(compTable, "D|A", "010101");
-  compTable->put(compTable, "D|M", "010101");
+  comp_table->put(comp_table, "0", "101010");
+  comp_table->put(comp_table, "1", "111111");
+  comp_table->put(comp_table, "-1", "111010");
+  comp_table->put(comp_table, "D", "001100");
+  comp_table->put(comp_table, "A", "110000");
+  comp_table->put(comp_table, "M", "110000");
+  comp_table->put(comp_table, "!D", "001101");
+  comp_table->put(comp_table, "!A", "110001");
+  comp_table->put(comp_table, "!M", "110001");
+  comp_table->put(comp_table, "-D", "001111");
+  comp_table->put(comp_table, "-A", "110011");
+  comp_table->put(comp_table, "-M", "110011");
+  comp_table->put(comp_table, "D+1", "011111");
+  comp_table->put(comp_table, "A+1", "110111");
+  comp_table->put(comp_table, "M+1", "110111");
+  comp_table->put(comp_table, "D-1", "001110");
+  comp_table->put(comp_table, "A-1", "110010");
+  comp_table->put(comp_table, "M-1", "110010");
+  comp_table->put(comp_table, "D+A", "000010");
+  comp_table->put(comp_table, "D+M", "000010");
+  comp_table->put(comp_table, "D-A", "010011");
+  comp_table->put(comp_table, "D-M", "010011");
+  comp_table->put(comp_table, "A-D", "000111");
+  comp_table->put(comp_table, "M-D", "000111");
+  comp_table->put(comp_table, "D&A", "000000");
+  comp_table->put(comp_table, "D&M", "000000");
+  comp_table->put(comp_table, "D|A", "010101");
+  comp_table->put(comp_table, "D|M", "010101");
 
-  return compTable;
+  return comp_table;
 }
 
 
-struct HashMap *getDestTable(void) {
-    struct HashMap *destTable = HashMap_new();
+struct HashMap *get_dest_table(void) {
+    struct HashMap *dest_table = HashMap_new();
 
     // maybe a better find?
     // for dest, set bit for every dest 
-    destTable->put(destTable, "M", "001");
-    destTable->put(destTable, "D", "010");
-    destTable->put(destTable, "DM", "011");
-    destTable->put(destTable, "MD", "011");
-    destTable->put(destTable, "A", "100");
-    destTable->put(destTable, "AM", "101");
-    destTable->put(destTable, "MA", "101");
-    destTable->put(destTable, "AD", "110");
-    destTable->put(destTable, "DA", "110");
-    destTable->put(destTable, "ADM", "111");
-    destTable->put(destTable, "ADM", "111");
-    destTable->put(destTable, "ADM", "111");
-    destTable->put(destTable, "ADM", "111");
-    destTable->put(destTable, "ADM", "111");
-    destTable->put(destTable, "ADM", "111");
+    dest_table->put(dest_table, "M", "001");
+    dest_table->put(dest_table, "D", "010");
+    dest_table->put(dest_table, "DM", "011");
+    dest_table->put(dest_table, "MD", "011");
+    dest_table->put(dest_table, "A", "100");
+    dest_table->put(dest_table, "AM", "101");
+    dest_table->put(dest_table, "MA", "101");
+    dest_table->put(dest_table, "AD", "110");
+    dest_table->put(dest_table, "DA", "110");
+    dest_table->put(dest_table, "ADM", "111");
+    dest_table->put(dest_table, "ADM", "111");
+    dest_table->put(dest_table, "ADM", "111");
+    dest_table->put(dest_table, "ADM", "111");
+    dest_table->put(dest_table, "ADM", "111");
+    dest_table->put(dest_table, "ADM", "111");
 
-    return destTable;
+    return dest_table;
 }
 
-struct HashMap *getJumpTable(void) {
-    struct HashMap *jumpTable = HashMap_new();
+struct HashMap *get_jump_table(void) {
+    struct HashMap *jump_table = HashMap_new();
 
-    jumpTable->put(jumpTable, "JGT", "001");
-    jumpTable->put(jumpTable, "JEQ", "010");
-    jumpTable->put(jumpTable, "JGE", "011");
-    jumpTable->put(jumpTable, "JLT", "100");
-    jumpTable->put(jumpTable, "JNE", "101");
-    jumpTable->put(jumpTable, "JLE", "110");
-    jumpTable->put(jumpTable, "JMP", "111");
+    jump_table->put(jump_table, "JGT", "001");
+    jump_table->put(jump_table, "JEQ", "010");
+    jump_table->put(jump_table, "JGE", "011");
+    jump_table->put(jump_table, "JLT", "100");
+    jump_table->put(jump_table, "JNE", "101");
+    jump_table->put(jump_table, "JLE", "110");
+    jump_table->put(jump_table, "JMP", "111");
 
-    return jumpTable;
+    return jump_table;
 }
