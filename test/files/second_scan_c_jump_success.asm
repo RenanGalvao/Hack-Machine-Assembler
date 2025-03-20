@@ -1,0 +1,8 @@
+0;JMP
+D;JGT
+D;JEQ
+D;JGE
+D;JLT
+D;JNE
+D;JLE
+D;JMP

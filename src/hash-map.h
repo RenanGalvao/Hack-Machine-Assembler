@@ -1,11 +1,13 @@
 #ifndef HASH_MAP_H
 #define HASH_MAP_H
 
-#define HASH_MAP_SIZE 8
+#include <stdint.h>
+
+#define HASH_MAP_SIZE 16
 
 struct HashMapEntry {
     char *key; /* public */
-    char *value; /* public */
+    uint16_t value; /* public */
     struct HashMapEntry *__prev;
     struct HashMapEntry *__next;
 };
@@ -27,8 +29,8 @@ struct HashMap {
     int __count;
 
     /* Methods */
-    void (*put)(struct HashMap *self, const char *key, const char *value);
-    char *(*get)(struct HashMap *self, const char *key);
+    void (*put)(struct HashMap *self, const char *key, uint16_t value);
+    uint16_t (*get)(struct HashMap *self, const char *key);
     int (*size)(struct HashMap *self);
     void (*dump)(struct HashMap *self);
     void (*del)(struct HashMap *self);
@@ -39,8 +41,8 @@ struct HashMap {
 struct HashMap *HashMap_new(void);
 struct HashMapEntry *__HashMap_find(struct HashMap *self, const char *key);
 
-void __HashMap_put(struct HashMap *self, const char *key, const char *value);
-char *__HashMap_get(struct HashMap *self, const char *key);
+void __HashMap_put(struct HashMap *self, const char *key, uint16_t value);
+uint16_t __HashMap_get(struct HashMap *self, const char *key);
 int __HashMap_size(struct HashMap *self);
 void __HashMap_del(struct HashMap *self);
 void __HashMap_dump(struct HashMap *self);

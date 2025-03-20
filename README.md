@@ -1,4 +1,4 @@
-# Hack Computer Assembler
+# Hack Machine Assembler
 Assembler para o Hack Assembly Language[^7], feito em C para o projeto #6 do curso [Nand2Tetris](https://www.nand2tetris.org/).
 O curso Nand2Tetris visa construir um computador de uso geral a partir do portão lógico [Nand](https://en.wikipedia.org/wiki/NAND_gate) até o famoso jogo de Tetris.
 
@@ -31,8 +31,8 @@ O curso Nand2Tetris visa construir um computador de uso geral a partir do portã
     - [RAM](#ram)
     - [SCREEN](#screen)
     - [KEYBOARD](#keyboard)
-- [Instalação](#instalação)
 - [Uso](#uso)
+- [Cobertura de testes](#cobertura-de-testes)
 - [Autores](#autores)
 - [Licensa](#licensa)
 - [Notas](#notas)
@@ -319,20 +319,157 @@ pressionada no teclado físico, usado para leitura somente.
 </details>
 
 
-## Instalação
-Baixe os arquivos e utilize make dentro da pasta:
-``` bash
-    git clone https://github.com/RenanGalvao/hack-machine-assembler.git
-    cd hack-machine-assembler && make
-```
-
-
 ## Uso
-Para gerar o código ``hack``, utilize:
-``` bash
-    ./hack-assembler <source-file>
-```
+- Tenha o [Ceedling](https://www.throwtheswitch.org/ceedling#get-ceedling-section) instalado.
+- Obtenha uma cópia do repositório ``git clone https://github.com/RenanGalvao/hack-machine-assembler.git``.
+- Entre na pasta e execute o build ``cd hack-machine-assembler && ceedling release``.
+
+Para gerar o código ``hack``, utilize dentro da pasta raiz: ``./build/release/assembler <source-file>``. 
 Caso não tenha nenhum tipo de erro no código fonte, o arquivo ``.hack`` estará na mesma pasta que o código fonte.
+
+
+## Cobertura de Testes
+
+<table class="legend">
+    <tbody><tr>
+      <th scope="row">Directory:</th>
+      <td>src/</td>
+    </tr>
+    <tr>
+      <th scope="row">Date:</th>
+      <td>2025-03-20 14:10:30</td>
+    </tr>
+    <tr>
+      <th scope="row">Coverage:</th>
+      <td class="legend">
+        <span class="coverage-low">low: ≥ 0%</span>
+        <span class="coverage-medium">medium: ≥ 75.0%</span>
+        <span class="coverage-high">high: ≥ 90.0%</span>
+      </td>
+    </tr>
+  </tbody></table>
+
+<table class="coverage">
+    <tbody><tr>
+      <th></th>
+      <th scope="col">Exec</th>
+      <th scope="col">Total</th>
+      <th scope="col">Coverage</th>
+    </tr>
+    <tr>
+      <th scope="row">Lines:</th>
+      <td>388</td>
+      <td>425</td>
+      <td class="coverage-high">91.3%</td>
+    </tr>
+    <tr>
+      <th scope="row">Functions:</th>
+      <td>28</td>
+      <td>28</td>
+      <td class="coverage-high">100.0%</td>
+    </tr>
+    <tr>
+      <th scope="row">Branches:</th>
+      <td>125</td>
+      <td>154</td>
+      <td class="coverage-medium">81.2%</td>
+    </tr>
+  </tbody></table>
+
+<table class="file-list">
+  <colgroup><col>
+  </colgroup><colgroup span="3">
+  </colgroup><colgroup span="2">
+  </colgroup><colgroup span="2">
+
+  </colgroup><tbody><tr>
+    <th scope="col">File</th>
+    <th scope="colgroup" colspan="3">Lines</th>
+    <th scope="colgroup" colspan="2">Functions</th>
+    <th scope="colgroup" colspan="2">Branches</th>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      code.c
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="97.7" title="97.7%">97.7</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">97.7%</td>
+    <td class="CoverValue line-coverage coverage-high">42 / 43</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">4 / 4</td>
+    <td class="CoverValue branch-coverage coverage-high">90.0%</td>
+    <td class="CoverValue branch-coverage coverage-high">9 / 10</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      hash-map.c
+    </th>
+    <td>
+      <meter class="coverage-low" min="0" max="100" value="70.8" title="70.8%">70.8</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-low">70.8%</td>
+    <td class="CoverValue line-coverage coverage-low">63 / 89</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">2 / 2</td>
+    <td class="CoverValue branch-coverage coverage-low">59.1%</td>
+    <td class="CoverValue branch-coverage coverage-low">26 / 44</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      parser.c
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="97.7" title="97.7%">97.7</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">97.7%</td>
+    <td class="CoverValue line-coverage coverage-high">84 / 86</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">3 / 3</td>
+    <td class="CoverValue branch-coverage coverage-high">97.2%</td>
+    <td class="CoverValue branch-coverage coverage-high">35 / 36</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      tables.c
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="100.0" title="100.0%">100.0</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">100.0%</td>
+    <td class="CoverValue line-coverage coverage-high">72 / 72</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">4 / 4</td>
+    <td class="CoverValue branch-coverage coverage-high">100.0%</td>
+    <td class="CoverValue branch-coverage coverage-high">2 / 2</td>
+  </tr>
+
+
+  <tr>
+    <th scope="row">
+      utils.c
+    </th>
+    <td>
+      <meter class="coverage-high" min="0" max="100" value="94.1" title="94.1%">94.1</meter>
+    </td>
+    <td class="CoverValue line-coverage coverage-high">94.1%</td>
+    <td class="CoverValue line-coverage coverage-high">127 / 135</td>
+    <td class="CoverValue function-coverage coverage-high">100.0%</td>
+    <td class="CoverValue function-coverage coverage-high">15 / 15</td>
+    <td class="CoverValue branch-coverage coverage-medium">85.5%</td>
+    <td class="CoverValue branch-coverage coverage-medium">53 / 62</td>
+  </tr>
+</tbody></table>
+Generated by: GCOVR (Version 5.2)
 
 
 ## Autores

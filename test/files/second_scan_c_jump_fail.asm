@@ -1,0 +1,5 @@
+;
+D;
+;JMP
+B;JMP
+D;JEMP

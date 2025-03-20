@@ -1,6 +1,8 @@
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "hash-map.h"
 
 struct HashMap *HashMap_new(void) {
@@ -43,7 +45,7 @@ struct HashMapEntry * __HashMap_find(struct HashMap *self, const char *key)
     return NULL;
 }
 
-void __HashMap_put(struct HashMap *self, const char *key, const char *value) {
+void __HashMap_put(struct HashMap *self, const char *key, uint16_t value) {
     int bucket;
     struct HashMapEntry *old, *new;
 
@@ -51,16 +53,14 @@ void __HashMap_put(struct HashMap *self, const char *key, const char *value) {
 
     old = __HashMap_find(self, key);
     if( old != NULL) {
-        old->value = realloc(old->value, sizeof(char) * (strlen(value) + 1));
-        strcpy(old->value, value);
+        old->value = value;
         return;
     }
 
     new = malloc(sizeof(struct HashMapEntry));
     new->key = malloc(sizeof(char) * (strlen(key) + 1));
     strcpy(new->key, key);
-    new->value = malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(new->value, value);
+    new->value = value;
     new->__next = NULL;
 
     bucket = getBucket(key, HASH_MAP_SIZE);
@@ -77,7 +77,7 @@ void __HashMap_put(struct HashMap *self, const char *key, const char *value) {
     self->__count++;
 }
 
-char *__HashMap_get(struct HashMap *self, const char *key) {
+uint16_t __HashMap_get(struct HashMap *self, const char *key) {
     if(self == NULL || key == NULL) return NULL;
 
     struct HashMapEntry *mapEntry;
@@ -86,7 +86,7 @@ char *__HashMap_get(struct HashMap *self, const char *key) {
     if(mapEntry != NULL)
         return mapEntry->value;
     else
-        return NULL;
+        return -1;
 }
 
 int __HashMap_size(struct HashMap *self) {
@@ -103,7 +103,6 @@ void __HashMap_del(struct HashMap *self) {
         cur = self->__heads[i];
         while(cur) {
             free(cur->key);
-            free(cur->value);
             next = cur->__next;
             free(cur);
             cur = next;
@@ -119,7 +118,7 @@ void __HashMap_dump(struct HashMap *self) {
     printf("Object HashMap count=%d buckets=%d\n", self->__count, self->__buckets);
     for(i = 0; i < self->__buckets; i++)
         for(cur = self->__heads[i]; cur != NULL; cur = cur->__next)
-            printf("  %s=%s [%d]\n", cur->key, cur->value, i);
+            printf("  %s=%d [%d]\n", cur->key, cur->value, i);
 }
 
 
